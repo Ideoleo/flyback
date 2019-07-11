@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/MKoza1/Desktop/STM/TEST_czwarty/TEST_Czwarty/Inc
+HeaderPath=C:/Users/MKoza1/Repo/flyback/Inc
 HeaderFiles=usb_host.h;usbh_conf.h;usbh_platform.h;stm32f4xx_it.h;stm32f4xx_hal_conf.h;main.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_cdc_if.h;
-SourcePath=C:/Users/MKoza1/Desktop/STM/TEST_czwarty/TEST_Czwarty/Src
+SourcePath=C:/Users/MKoza1/Repo/flyback/Src
 SourceFiles=usb_host.c;usbh_conf.c;usbh_platform.c;stm32f4xx_it.c;stm32f4xx_hal_msp.c;main.c;usb_device.c;usbd_conf.c;usbd_desc.c;usbd_cdc_if.c;
 
 [PreviousLibFiles]
