@@ -6,14 +6,26 @@
  */
 
 #include <vector>
+#include <string.h>
+#include <stdio.h>
+#include "main.h"
+#include "stm32f4xx_it.h"
 
-extern "C" void UART_function() {
 
 
-	/*
-	 static char Data[128];
-	 char MEMDataToSend[128];
-	 int size = 0;
+ extern UART_HandleTypeDef huart3;
+ char MEMDataToSend[128];
+ char DataToSend[128];
+ char Cmp[4];
+ char Str1[] = "Ala";   //String do porownania
+ char *WordToFind;
+ uint16_t size = 0;
+ uint8_t i = 0;
+ char Data[128];
+
+extern "C" void UART_function(uint8_t ReceivedData) {
+
+
 
 		 if (ReceivedData == 13){  //13 - znak entera w ASCII
 			DataToSend[i] = 0;
@@ -31,10 +43,10 @@ extern "C" void UART_function() {
 		    		strcpy(Cmp, "NO");
 		    }
 
-		     size = sprintf(Data, "Text: %s  Length: %u  First Word: %s  Compare?: %s \n\n\r", DataToSend,i,WordToFind, Cmp);
-			 HAL_UART_Transmit_IT(&huart3, Data, size);
+		     size = sprintf(Data, "Text: %s  Length:  First Word:  Compare?:  \n\n\r",DataToSend);
+
+			 HAL_UART_Transmit_IT(&huart3, reinterpret_cast<uint8_t*>(Data), size);
 			 i = 0;
-			 test();
 
 		 }
 		 else{
@@ -44,9 +56,9 @@ extern "C" void UART_function() {
 
 		 }
 
-		 HAL_UART_Receive_IT(&huart3, &ReceivedData, 1);
 
-		 */
 
-	std::vector<int> a;
+
+
+	//std::vector<int> a;
 }
