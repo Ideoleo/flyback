@@ -76,7 +76,10 @@ uint16_t ADC_Bits = 4096;   //Zakres przetwornika
 
 uint32_t PWM_Control;    //Skala przeliczona z ADC
 
-volatile uint8_t i = 0;
+volatile uint8_t i = 0;  //licznik liter w lancuchu znakow
+char Str1[] = "Ala";   //String do porownania
+char *WordToFind;
+char Cmp[4];
 
 uint8_t cnt;
 
@@ -84,6 +87,7 @@ uint8_t cnt;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
+
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
@@ -94,6 +98,7 @@ static void MX_ADC1_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART3_UART_Init(void);
+
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
@@ -103,32 +108,38 @@ extern void initialise_monitor_handles(void);  // inicjalizacja semi-hostingu
  void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc1) {
 
 	 Pomiar_ADC = HAL_ADC_GetValue(hadc1);
-	 Wynik_ADC = (((float)Pomiar_ADC/ADC_Bits)*Voltage_Limit);
-	 PWM_Control = ((102*Pomiar_ADC)/ADC_Bits);
+	 Wynik_ADC = (((float)Pomiar_ADC/ADC_Bits)*Voltage_Limit); //skalowanie w zakresie 0 - 3V
+	 PWM_Control = ((102*Pomiar_ADC)/ADC_Bits); //zmiana wypelnienia w zakresie od 0 - 100 %
 
  }
+void test();
 
  void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 	 static uint8_t Data[128];
+	 uint8_t MEMDataToSend[128];
 	 uint16_t size = 0;
 
-	 if (ReceivedData == 13){
-		DataToSend[i+1] = 0;
-		size = sprintf(Data, "Word: %s\n\r", DataToSend);
-	    HAL_UART_Transmit_IT(&huart3, Data, size);
-	    DataToSend = {0};
-	    i = 0;
+	 if (ReceivedData == 13){  //13 - znak entera w ASCII
+		DataToSend[i] = 0;
 
+		strcpy(MEMDataToSend,DataToSend);
 
-	    /*
+	    WordToFind = strtok(MEMDataToSend," ");
 
+	    if(strcmp(WordToFind, Str1) == 0){
+	            HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
+	    		strcpy(Cmp, "YES");
+	    }
+	    else{
+	    		HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
+	    		strcpy(Cmp, "NO");
+	    }
 
-	    if( strcmp( DataToSend, Str1 ) == 0 )
-	            cnt++;
+	     size = sprintf(Data, "Text: %s  Length: %u  First Word: %s  Compare?: %s \n\n\r", DataToSend,i,WordToFind, Cmp);
+		 HAL_UART_Transmit_IT(&huart3, Data, size);
+		 i = 0;
 
-
-	     */
 
 
 	 }
@@ -140,8 +151,6 @@ extern void initialise_monitor_handles(void);  // inicjalizacja semi-hostingu
 	 }
 
 	 HAL_UART_Receive_IT(&huart3, &ReceivedData, 1);
-
-
 
  }
 
@@ -205,6 +214,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+
 	HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -260,7 +270,8 @@ int main(void)
 
 		htim4.Instance -> CCR3 = PWM_Control;
 
-		printf("PWM_Value: %c  %c  %c  %c  Voltage: %.3f V\n\r", DataToSend[0],DataToSend[1],DataToSend[2],DataToSend[3],  Wynik_ADC);
+		//printf("PWM_Value: %c  %c  Cnt: %u  Slowo: %s  Voltage: %.3f V\n\r", DataToSend[0],DataToSend[1],cnt,WordToFind, Wynik_ADC);
+		printf("PWM_Value: %c  %c  Slowo: %s  Cmp: %s  Voltage: %.3f V\n\r", DataToSend[0],DataToSend[1],WordToFind,Cmp, Wynik_ADC);
 		HAL_Delay(100);
 
 
