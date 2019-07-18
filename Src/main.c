@@ -96,6 +96,7 @@ void Console_service_start(void const * argument);
 /* Private function prototypes -----------------------------------------------*/
 
 extern void initialise_monitor_handles(void);  // inicjalizacja semi-hostingu
+void UART_Class_RC(uint8_t Data_RC);
 
 // Przerwanie_ADC - start pomiaru za pomoca Timera 3 - 100Hz
  void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc1) {
@@ -110,7 +111,7 @@ extern void initialise_monitor_handles(void);  // inicjalizacja semi-hostingu
  void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 
-	 UART_function(ReceivedData);
+	 UART_Class_RC(ReceivedData);
 	 HAL_UART_Receive_IT(&huart3, &ReceivedData, 1);
 
  }
@@ -224,9 +225,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-
-
 
 		htim4.Instance -> CCR3 = PWM_Control;
 
