@@ -1,4 +1,5 @@
 #include "Console_service.hpp"
+#include "cmsis_os.h"
 #include <fstream>
 #include <cstdint>
 #include <cstdio>
@@ -24,11 +25,16 @@ UartCom::~UartCom(){
 void UartCom::UART_Class_RC(uint8_t RC_Data){
 
 
+
 	 if (RC_Data == Enter){
+
+		 std::vector<std::string> vec_data;
 
 		 DataToSend[i] = 0;
 		 i = 0;
-		 strcpy(MEMDataToSend,DataToSend);
+
+		 vec_data = Object1.UART_Class_TOK(DataToSend, " ");
+		 Object1.UART_Class_VPRINT(vec_data);
 
 	 }
 
@@ -41,36 +47,60 @@ void UartCom::UART_Class_RC(uint8_t RC_Data){
 
 }
 
-void UartCom::UART_Class_TOK(){
+std::vector<std::string> UartCom::UART_Class_TOK(char* MEMDataToSend, const char* const StrFind){
 
-
+	std::vector<std::string> vdata;
 	char *WordToFind;
-	WordToFind = strtok(MEMDataToSend," ");
+	WordToFind = strtok(MEMDataToSend,StrFind);
+
 
 	while(WordToFind != NULL){
 
 		string temp(WordToFind);
-		v_data.push_back (temp);
-		WordToFind = strtok(NULL, " ");
+		vdata.push_back (temp);
+		WordToFind = strtok(NULL,StrFind);
+
+	}
+
+	return vdata;
+
+
+}
+
+void UartCom::UART_Class_VPRINT(std::vector<std::string> vdata){
+
+	for(unsigned int i = 0; i < vdata.size(); i++){
+
+			printf("%s \n\r",vdata[i].c_str());
+
+		}
+
+}
+
+void UartCom::UART_Class_RUN(){
+
+	int i = 0;
+	while(1){
+
+
+		osDelay(1000);
+		printf("Test: %d\n\r",i);
+		i++;
 
 	}
 
 
 }
 
-void UartCom::UART_Class_VPRINT(){
-
-	for(int i = 0; i < v_data.size(); i++){
-
-			printf("%s \n\r",v_data[i].c_str());
-		}
-
-}
 
 extern "C" void UART_Class_RC(uint8_t RC_Data){
 
 	Object1.UART_Class_RC(RC_Data);
-	Object1.UART_Class_TOK();
-	Object1.UART_Class_VPRINT();
+
+}
+
+extern "C" void UART_Class_RUN(void const* param){
+
+	Object1.UART_Class_RUN();
 
 }

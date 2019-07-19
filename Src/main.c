@@ -61,6 +61,7 @@ UART_HandleTypeDef huart3;
 
 osThreadId defaultTaskHandle;
 osThreadId Console_serviceHandle;
+osThreadId Diode_ToggleHandle;
 osMessageQId Console_RxHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -91,12 +92,14 @@ static void MX_TIM3_Init(void);
 static void MX_USART3_UART_Init(void);
 void StartDefaultTask(void const * argument);
 void Console_service_start(void const * argument);
+void Diode_Toggle_start(void const * argument);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
 extern void initialise_monitor_handles(void);  // inicjalizacja semi-hostingu
 void UART_Class_RC(uint8_t Data_RC);
+void UART_Class_RUN();
 
 // Przerwanie_ADC - start pomiaru za pomoca Timera 3 - 100Hz
  void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc1) {
@@ -203,8 +206,12 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of Console_service */
-  osThreadDef(Console_service, Console_service_start, osPriorityLow, 0, 256);
+  osThreadDef(Console_service, UART_Class_RUN, osPriorityLow, 0, 256);
   Console_serviceHandle = osThreadCreate(osThread(Console_service), NULL);
+
+  /* definition and creation of Diode_Toggle */
+  osThreadDef(Diode_Toggle, Diode_Toggle_start, osPriorityIdle, 0, 256);
+  Diode_ToggleHandle = osThreadCreate(osThread(Diode_Toggle), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -724,6 +731,26 @@ void Console_service_start(void const * argument)
     osDelay(1);
   }
   /* USER CODE END Console_service_start */
+}
+
+/* USER CODE BEGIN Header_Diode_Toggle_start */
+/**
+* @brief Function implementing the Diode_Toggle thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Diode_Toggle_start */
+void Diode_Toggle_start(void const * argument)
+{
+  /* USER CODE BEGIN Diode_Toggle_start */
+  /* Infinite loop */
+  for(;;)
+  {
+	HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+
+    osDelay(100);
+  }
+  /* USER CODE END Diode_Toggle_start */
 }
 
 /**

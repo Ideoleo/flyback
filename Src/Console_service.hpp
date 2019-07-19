@@ -22,13 +22,13 @@ public:
 	~UartCom();
 
 	void UART_Class_RC(uint8_t Data_RC);
-	void UART_Class_TOK();
-	void UART_Class_VPRINT();
+	std::vector<std::string> UART_Class_TOK(char* MEMDataToSend,const char* const StrFind);
+	void UART_Class_VPRINT(std::vector<std::string> vdata);
+	void UART_Class_RUN();
 
 private:
 
-	 std::vector <std::string> v_data;
-	 char DataToSend[128],MEMDataToSend[128];
+	 char DataToSend[128];
 	 uint8_t i;
 	 const uint8_t Enter;
 
