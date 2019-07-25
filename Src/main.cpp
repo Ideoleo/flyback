@@ -29,6 +29,7 @@
 #include "usbd_cdc_if.h" // Plik bedacy interfejsem uzytkownika do kontrolera USB
 #include "string.h"
 #include "queue.h"
+#include "PWM_service.hpp"
 
 /* USER CODE END Includes */
 
@@ -62,6 +63,7 @@ UART_HandleTypeDef huart3;
 
 osThreadId defaultTaskHandle;
 osThreadId Console_serviceHandle;
+osThreadId ADC_serviceHandle;
 osThreadId Diode_ToggleHandle;
 osMessageQId Console_RxHandle;
 
@@ -72,11 +74,6 @@ osMessageQId Console_RxHandle;
 uint8_t MessageCounter = 0; // Licznik wyslanych wiadomosci
 uint16_t MessageLength = 0; // Zawiera dlugosc wysylanej wiadomosci
 uint8_t ReceivedData; // Tablica przechowujaca odebrane dane
-//uint32_t ADC_Value = 0 ;  //Wartosc z przetwornika ADC1
-//float Wynik_ADC = 0;	//Wartosc przeliczona na napiecie
-//float Voltage_Limit = 2.96;  //Napiecie maskymalne ADC
-//uint16_t ADC_Bits = 4096;   //Zakres przetwornika
-uint32_t PWM_Control;    //Skala przeliczona z ADC
 uint8_t cnt;
 
 
@@ -94,26 +91,24 @@ static void MX_TIM3_Init(void);
 static void MX_USART3_UART_Init(void);
 void StartDefaultTask(void const * argument);
 void Console_service_start(void const * argument);
+void ADC_service_start(void const * argument);
 void Diode_Toggle_start(void const * argument);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
-extern void initialise_monitor_handles(void);  // inicjalizacja semi-hostingu
+extern "C" void initialise_monitor_handles(void);  // inicjalizacja semi-hostingu
 
 void UART_Class_RC(uint8_t Data_RC);
-void UART_Class_RUN();
+void UART_Class_RUN(void const* param);
 void ADC_Transmit(uint32_t ADC_Value);
+void ADC_Print(void const* param);
+int PWM_Change();
 
 // Przerwanie_ADC - start pomiaru za pomoca Timera 3 - 100Hz
  void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc1) {
 
-
 	ADC_Transmit(HAL_ADC_GetValue(hadc1));
-
-
-	// Wynik_ADC = (((float)ADC_Value/ADC_Bits)*Voltage_Limit); //skalowanie w zakresie 0 - 3V
-	 //PWM_Control = ((102*ADC_Value)/ADC_Bits); //zmiana wypelnienia w zakresie od 0 - 100 %
 
  }
 
@@ -133,17 +128,14 @@ void ADC_Transmit(uint32_t ADC_Value);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+ PWMConf PWM_Ob1(&htim4);
+
 /* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
   * @retval int
-
-
-
   */
-
-
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -204,7 +196,8 @@ int main(void)
 
   /* Create the queue(s) */
   /* definition and creation of Console_Rx */
-
+  osMessageQDef(Console_Rx, 16, char);
+  Console_RxHandle = osMessageCreate(osMessageQ(Console_Rx), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -216,11 +209,15 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of Console_service */
-  osThreadDef(Console_service, UART_Class_RUN, osPriorityLow, 0, 256);
+  osThreadDef(Console_service, UART_Class_RUN, osPriorityLow, 0, 256);                  ///UART_Class_RUN
   Console_serviceHandle = osThreadCreate(osThread(Console_service), NULL);
 
+  /* definition and creation of ADC_service */
+  osThreadDef(ADC_service, ADC_Print, osPriorityNormal, 0, 256);						//ADC_Print
+  ADC_serviceHandle = osThreadCreate(osThread(ADC_service), NULL);
+
   /* definition and creation of Diode_Toggle */
-  osThreadDef(Diode_Toggle, Diode_Toggle_start, osPriorityIdle, 0, 256);
+  osThreadDef(Diode_Toggle, Diode_Toggle_start, osPriorityLow, 0, 128);
   Diode_ToggleHandle = osThreadCreate(osThread(Diode_Toggle), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -242,10 +239,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-		htim4.Instance -> CCR3 = PWM_Control;
-
-		HAL_Delay(100);
 
 
 	}
@@ -731,16 +724,33 @@ void StartDefaultTask(void const * argument)
 /* USER CODE END Header_Console_service_start */
 void Console_service_start(void const * argument)
 {
-
   /* USER CODE BEGIN Console_service_start */
   /* Infinite loop */
   for(;;)
   {
 
-	  vTaskDelay(100);
+	  osDelay(100);
 
   }
   /* USER CODE END Console_service_start */
+}
+
+/* USER CODE BEGIN Header_ADC_service_start */
+/**
+* @brief Function implementing the ADC_service thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_ADC_service_start */
+void ADC_service_start(void const * argument)
+{
+  /* USER CODE BEGIN ADC_service_start */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(100);
+  }
+  /* USER CODE END ADC_service_start */
 }
 
 /* USER CODE BEGIN Header_Diode_Toggle_start */
@@ -752,14 +762,13 @@ void Console_service_start(void const * argument)
 /* USER CODE END Header_Diode_Toggle_start */
 void Diode_Toggle_start(void const * argument)
 {
-
   /* USER CODE BEGIN Diode_Toggle_start */
 
   /* Infinite loop */
   for(;;)
   {
 
-	vTaskDelay(100);
+	 osDelay(100);
 
   }
   /* USER CODE END Diode_Toggle_start */

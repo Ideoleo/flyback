@@ -7,7 +7,9 @@
 
 #ifndef ADC_SERVICE_HPP_
 #define ADC_SERVICE_HPP_
+#include "main.h"
 #include <fstream>
+#include <iostream>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -21,14 +23,21 @@ public:
 	ADCConf();
 	~ADCConf();
 
-	float Convert_To_Voltage(uint8_t Vcc_Voltage, uint16_t Max_Bit_Value);
+	float Convert_To_Voltage();
 	void ADC_Push(uint32_t Data_To_Push);
+	uint8_t Convert_To_PWM();
 	void ADC_Get();
+	void Change_PWM();
+
 
 private:
 
 	 osMessageQId ADC_Rx_Handle;
 	 uint32_t ADC_Value;
+	 uint8_t Vcc_Voltage;
+	 uint16_t Max_Bit_Value;
+
+
 
 };
 

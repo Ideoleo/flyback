@@ -1,4 +1,5 @@
 #include "Console_service.hpp"
+#include "PWM_service.hpp"
 #include "cmsis_os.h"
 #include <fstream>
 #include <cstdint>
@@ -42,8 +43,6 @@ void UartCom::UART_Build_String(){
 	evt = osMessageGet(Console_Rx_Handle, osWaitForever);
 	Uart_rec_value = evt.value.v;
 
-	//printf("Wartosc z kolejki: %c \n\r",static_cast<char>(Uart_rec_value));
-
 
 	 if (Uart_rec_value == Enter){
 
@@ -59,7 +58,7 @@ void UartCom::UART_Build_String(){
 
 		 else{
 
-			 DataToSend[i] = Uart_rec_value;
+			 DataToSend[i] = Uart_rec_value;		//wpisz kolejne znaki do bufora
 			 i++;
 
 		 }
@@ -111,13 +110,13 @@ void UartCom::UART_Class_RUN(){
 }
 
 
-extern "C" void UART_Class_RC(uint8_t RC_Data){
+void UART_Class_RC(uint8_t RC_Data){
 
 	Object1.UART_Rec_Sign(RC_Data);
 
 }
 
-extern "C" void UART_Class_RUN(void const* param){
+void UART_Class_RUN(void const* param){
 
 	Object1.UART_Class_RUN();
 
