@@ -15,12 +15,13 @@
 #include <cstring>
 #include <vector>
 #include "cmsis_os.h"
+#include "Analog_Output_Interface.hpp"
 
 class ADCConf{
 
 public:
 
-	ADCConf();
+	ADCConf(AnalogOutInterface* const wsk);
 	~ADCConf();
 
 	float Convert_To_Voltage();
@@ -28,6 +29,8 @@ public:
 	uint8_t Convert_To_PWM();
 	void ADC_Get();
 	void Change_PWM();
+	float ADC_Send_Voltage();
+	void ADC_Send_PWM();
 
 
 private:
@@ -36,6 +39,7 @@ private:
 	 uint32_t ADC_Value;
 	 uint8_t Vcc_Voltage;
 	 uint16_t Max_Bit_Value;
+	 AnalogOutInterface* const wsk;
 
 
 

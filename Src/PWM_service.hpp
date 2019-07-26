@@ -12,7 +12,7 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_tim.h"
 
-class PWMConf:public Analog_Out_Interface{
+class PWMConf:public AnalogOutInterface{
 
 public:
 

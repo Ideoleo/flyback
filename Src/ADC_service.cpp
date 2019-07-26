@@ -17,10 +17,9 @@
 using namespace std;
 
 
-ADCConf ADC_Ob1;
 
-
-ADCConf::ADCConf(){
+ADCConf::ADCConf(AnalogOutInterface* const wsk)
+:wsk(wsk){
 
 	Vcc_Voltage = 3;
 	Max_Bit_Value = 4096;   //2^12
@@ -58,60 +57,29 @@ float ADCConf::Convert_To_Voltage(){
 }
 
 
-/*
+float ADCConf::ADC_Send_Voltage(){
 
-void ADCConf::ADC_Value_Send(){
-                               	   	   	   	   //Tu wpisac funkcje w piatek
-}
-
-*/
-
- /*
-
- void ADCConf::Change_PWM(){
-
-	 TIM_HandleTypeDef htim4;
-	 htim4.Instance = TIM4;
-
-	 uint8_t PWM_Control = ADC_Ob1.Convert_To_PWM();			//Skalowanie wartosci ADC od 0 do 100
-	 htim4.Instance -> CCR3 = PWM_Control;
-
-
- }
- */
-
-
-void ADC_Transmit(uint32_t ADC_Value){
-
-	ADC_Ob1.ADC_Push(ADC_Value);
+	ADC_Get();
+	return(Convert_To_Voltage());
 
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+void ADCConf::ADC_Send_PWM(){
 
-void ADC_Print(void const* param){
+	 for(;;)
+	  {
+		ADC_Get();
+		wsk -> Set_Out(ADC_Value);
 
-	uint32_t cnt = 0;
+	  }
 
-
-	while(1){
-
-		ADC_Ob1.ADC_Get();
-
-		if(cnt%20 == 0){
-
-			printf("ADC: %.2f V \n\r",(ADC_Ob1.Convert_To_Voltage()));
-
-		}
-
-		cnt++;
-
-	}
 
 
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 
 

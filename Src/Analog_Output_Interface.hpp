@@ -11,7 +11,7 @@
 #include <cstdint>
 
 
-class Analog_Out_Interface{
+class AnalogOutInterface{
 
 public:
 

@@ -30,6 +30,7 @@
 #include "string.h"
 #include "queue.h"
 #include "PWM_service.hpp"
+#include "ADC_service.hpp"
 
 /* USER CODE END Includes */
 
@@ -76,6 +77,11 @@ uint16_t MessageLength = 0; // Zawiera dlugosc wysylanej wiadomosci
 uint8_t ReceivedData; // Tablica przechowujaca odebrane dane
 uint8_t cnt;
 
+/* Deklaracja objektow -------------------------------------------------------*/
+
+AnalogOutInterface* pwm = new PWMConf(&htim4);
+ADCConf* adc = new ADCConf(pwm);
+
 
 /* USER CODE END PV */
 
@@ -101,14 +107,13 @@ extern "C" void initialise_monitor_handles(void);  // inicjalizacja semi-hosting
 
 void UART_Class_RC(uint8_t Data_RC);
 void UART_Class_RUN(void const* param);
-void ADC_Transmit(uint32_t ADC_Value);
 void ADC_Print(void const* param);
 int PWM_Change();
 
 // Przerwanie_ADC - start pomiaru za pomoca Timera 3 - 100Hz
  void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc1) {
 
-	ADC_Transmit(HAL_ADC_GetValue(hadc1));
+	adc-> ADC_Push(HAL_ADC_GetValue(hadc1));
 
  }
 
@@ -122,13 +127,11 @@ int PWM_Change();
 
 
 
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
- PWMConf PWM_Ob1(&htim4);
 
 /* USER CODE END 0 */
 
@@ -136,9 +139,13 @@ int PWM_Change();
   * @brief  The application entry point.
   * @retval int
   */
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+
+
+
 
   /* USER CODE END 1 */
   
@@ -213,7 +220,7 @@ int main(void)
   Console_serviceHandle = osThreadCreate(osThread(Console_service), NULL);
 
   /* definition and creation of ADC_service */
-  osThreadDef(ADC_service, ADC_Print, osPriorityNormal, 0, 256);						//ADC_Print
+  osThreadDef(ADC_service, ADC_service_start, osPriorityNormal, 0, 256);						//ADC_Print
   ADC_serviceHandle = osThreadCreate(osThread(ADC_service), NULL);
 
   /* definition and creation of Diode_Toggle */
@@ -746,12 +753,13 @@ void ADC_service_start(void const * argument)
 {
   /* USER CODE BEGIN ADC_service_start */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(100);
-  }
-  /* USER CODE END ADC_service_start */
+
+		 adc -> ADC_Send_PWM();
+
+
 }
+  /* USER CODE END ADC_service_start */
+
 
 /* USER CODE BEGIN Header_Diode_Toggle_start */
 /**
