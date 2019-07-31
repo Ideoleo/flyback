@@ -27,10 +27,12 @@ public:
 	std::vector<std::string> UART_Tok(char* MEMDataToSend,const char* const StrFind);
 	void UART_Class_VPRINT(std::vector<std::string> vdata);
 	void UART_Class_RUN();
+	//void UART_Printf(char[],uint32_t);
 
 private:
 
 	 char DataToSend[128];
+	 char MEMDataToSend[128];
 	 uint8_t i;
 	 const uint8_t Enter;
 	 osMessageQId Console_Rx_Handle;

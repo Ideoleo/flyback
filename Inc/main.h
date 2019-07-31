@@ -57,6 +57,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
+void vApplicationIdleHook(void);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

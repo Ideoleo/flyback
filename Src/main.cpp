@@ -31,6 +31,7 @@
 #include "queue.h"
 #include "PWM_service.hpp"
 #include "ADC_service.hpp"
+#include "Console_service.hpp"
 
 /* USER CODE END Includes */
 
@@ -72,15 +73,17 @@ osMessageQId Console_RxHandle;
 /* Private variables ---------------------------------------------------------*/
 
 
-uint8_t MessageCounter = 0; // Licznik wyslanych wiadomosci
-uint16_t MessageLength = 0; // Zawiera dlugosc wysylanej wiadomosci
 uint8_t ReceivedData; // Tablica przechowujaca odebrane dane
-uint8_t cnt;
+
+uint8_t Data_To_Send[50];
+uint16_t size = 0;
+
 
 /* Deklaracja objektow -------------------------------------------------------*/
 
 AnalogOutInterface* pwm = new PWMConf(&htim4);
 ADCConf* adc = new ADCConf(pwm);
+UartCom* uart = new UartCom(13);
 
 
 /* USER CODE END PV */
@@ -110,7 +113,7 @@ void UART_Class_RUN(void const* param);
 void ADC_Print(void const* param);
 int PWM_Change();
 
-// Przerwanie_ADC - start pomiaru za pomoca Timera 3 - 100Hz
+// Przerwanie_ADC - start pomiaru za pomoca Timera 3 - 10 kHz
  void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc1) {
 
 	adc-> ADC_Push(HAL_ADC_GetValue(hadc1));
@@ -203,6 +206,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* definition and creation of Console_Rx */
+
   osMessageQDef(Console_Rx, 16, char);
   Console_RxHandle = osMessageCreate(osMessageQ(Console_Rx), NULL);
 
@@ -212,20 +216,16 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityIdle, 0, 256);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of Console_service */
-  osThreadDef(Console_service, UART_Class_RUN, osPriorityLow, 0, 256);                  ///UART_Class_RUN
+  osThreadDef(Console_service, Console_service_start, osPriorityNormal, 0, 256);                  ///UART_Class_RUN
   Console_serviceHandle = osThreadCreate(osThread(Console_service), NULL);
 
   /* definition and creation of ADC_service */
-  osThreadDef(ADC_service, ADC_service_start, osPriorityNormal, 0, 256);						//ADC_Print
+  osThreadDef(ADC_service, ADC_service_start, osPriorityBelowNormal, 0, 256);				//ADC_Print
   ADC_serviceHandle = osThreadCreate(osThread(ADC_service), NULL);
-
-  /* definition and creation of Diode_Toggle */
-  osThreadDef(Diode_Toggle, Diode_Toggle_start, osPriorityLow, 0, 128);
-  Diode_ToggleHandle = osThreadCreate(osThread(Diode_Toggle), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -435,7 +435,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 9999;
+  htim3.Init.Prescaler = 99;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 16;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -697,7 +697,13 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+static uint32_t ulIdleCycleCount = 0;   //Zliczanie obiegow petli Idle
 
+void vApplicationIdleHook(void){
+
+	 ulIdleCycleCount++;
+
+}
 
 /* USER CODE END 4 */
 
@@ -718,6 +724,7 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
     osDelay(100);
+
   }
   /* USER CODE END 5 */ 
 }
@@ -733,10 +740,26 @@ void Console_service_start(void const * argument)
 {
   /* USER CODE BEGIN Console_service_start */
   /* Infinite loop */
+
+
+
+	uint8_t Data[40];
+	uint16_t size = 0;
+
+
   for(;;)
   {
 
+	 // printf("IdleCount: %lu \n\r",ulIdleCycleCount);
+
+
+	  size = sprintf(Data,"IdleCount: %lu \n\r",ulIdleCycleCount);
+	  HAL_UART_Transmit_IT(&huart3, Data, size);
+	  ulIdleCycleCount = 0;
+
 	  osDelay(100);
+
+
 
   }
   /* USER CODE END Console_service_start */
@@ -757,30 +780,10 @@ void ADC_service_start(void const * argument)
 		 adc -> ADC_Send_PWM();
 
 
+
 }
   /* USER CODE END ADC_service_start */
 
-
-/* USER CODE BEGIN Header_Diode_Toggle_start */
-/**
-* @brief Function implementing the Diode_Toggle thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_Diode_Toggle_start */
-void Diode_Toggle_start(void const * argument)
-{
-  /* USER CODE BEGIN Diode_Toggle_start */
-
-  /* Infinite loop */
-  for(;;)
-  {
-
-	 osDelay(100);
-
-  }
-  /* USER CODE END Diode_Toggle_start */
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

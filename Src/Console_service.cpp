@@ -49,6 +49,7 @@ void UartCom::UART_Build_String(){
 			 std::vector<std::string> vec_data;		//wektor dla tokenow
 
 			 DataToSend[i] = 0;
+
 			 i = 0;
 
 			vec_data = Object1.UART_Tok(DataToSend, " ");	//podziel na tokeny
@@ -109,6 +110,22 @@ void UartCom::UART_Class_RUN(){
 
 }
 
+
+/*
+
+void UartCom::UART_Printf(char Txt[50],uint32_t Value){
+
+	static uint8_t data[50];
+	uint16_t size = 0;
+	UART_HandleTypeDef huart3;
+
+	size = sprintf(data,Txt,Value);
+	HAL_UART_Transmit(&huart3, data, size, 10);
+
+
+}
+
+*/
 
 void UART_Class_RC(uint8_t RC_Data){
 

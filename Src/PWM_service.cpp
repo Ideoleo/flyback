@@ -6,6 +6,7 @@
  */
 
 #include "PWM_service.hpp"
+#include "stdio.h"
 
 
 PWMConf::PWMConf(TIM_HandleTypeDef* const tim)
@@ -24,13 +25,18 @@ PWMConf::~PWMConf(){
 uint32_t PWMConf::Convert_To_PWM(uint32_t value){
 
 
-	return ((102*value)/Max_Bit_Value); //zmiana wypelnienia w zakresie od 0 - 100 %
+	return (101 - ((102*value)/Max_Bit_Value)); //zmiana wypelnienia w zakresie od 0 - 100 %
+												//Im wieksze napiecie tym mniejsze wypelnienie
+
+
 
 }
 
 void PWMConf::Set_Out(uint32_t value){
 
+
 	uint32_t PWM_Value = Convert_To_PWM(value);
+
 	tim->Instance->CCR3 = PWM_Value;
 
 }
